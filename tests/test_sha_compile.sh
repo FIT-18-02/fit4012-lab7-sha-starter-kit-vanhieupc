@@ -12,3 +12,4 @@ g++ -std=c++17 -Wall -Wextra -pedantic salted_password_hash.cpp -o salted_passwo
 [[ -x ./salted_password_hash ]] || { echo "[FAIL] Missing salted_password_hash executable"; exit 1; }
 
 echo "[PASS] SHA programs compile successfully."
+#vh
