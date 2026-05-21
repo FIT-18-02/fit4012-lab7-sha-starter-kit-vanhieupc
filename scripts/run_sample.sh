@@ -1,20 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-make all
+# 1. Build project
+make all >/dev/null
+
+# Dọn dẹp các file rác từ lần chạy trước nếu có
+rm -f sample.txt test_password.hash test_password_salted_1.hash test_password_salted_2.hash
 
 echo "== 1. Known answer tests =="
-./sha256 --self-test
+./sha256 --self-test >/dev/null
 
 echo "== 2. Hash string =="
-./sha256 --hash-string "hello FIT4012 SHA"
+./sha256 --hash-string "hello FIT4012 SHA" >/dev/null
 
 echo "== 3. File integrity =="
 printf "FIT4012 SHA file integrity sample\n" > sample.txt
 EXPECTED_HASH=$(./sha256 --hash-file sample.txt)
-./file_integrity sample.txt "$EXPECTED_HASH"
+./file_integrity sample.txt "$EXPECTED_HASH" >/dev/null
+
 printf "tampered\n" >> sample.txt
-if ./file_integrity sample.txt "$EXPECTED_HASH"; then
+if ./file_integrity sample.txt "$EXPECTED_HASH" >/dev/null; then
   echo "[FAIL] Tamper case should fail"
   exit 1
 else
@@ -22,9 +27,9 @@ else
 fi
 
 echo "== 4. Password hash =="
-./password_hash register "fit4012-demo-password" test_password.hash
-./password_hash login "fit4012-demo-password" test_password.hash
-if ./password_hash login "wrong-password" test_password.hash; then
+./password_hash register "fit4012-demo-password" test_password.hash >/dev/null
+./password_hash login "fit4012-demo-password" test_password.hash >/dev/null
+if ./password_hash login "wrong-password" test_password.hash >/dev/null; then
   echo "[FAIL] Wrong password should fail"
   exit 1
 else
@@ -32,12 +37,19 @@ else
 fi
 
 echo "== 5. Salted password hash =="
-./salted_password_hash register "fit4012-demo-password" test_password_salted_1.hash
-./salted_password_hash register "fit4012-demo-password" test_password_salted_2.hash
-./salted_password_hash login "fit4012-demo-password" test_password_salted_1.hash
+./salted_password_hash register "fit4012-demo-password" test_password_salted_1.hash >/dev/null
+./salted_password_hash register "fit4012-demo-password" test_password_salted_2.hash >/dev/null
+./salted_password_hash login "fit4012-demo-password" test_password_salted_1.hash >/dev/null
+
 if cmp -s test_password_salted_1.hash test_password_salted_2.hash; then
   echo "[FAIL] Same password should produce different salted records"
   exit 1
 else
   echo "[PASS] Same password produced different salted records"
 fi
+
+# Dọn dẹp cuối cùng
+rm -f sample.txt test_password.hash test_password_salted_1.hash test_password_salted_2.hash
+
+echo "[PASS] All tests passed."
+exit 0
